@@ -152,9 +152,31 @@
     let currentQuestionIndex = 0;
     let score = 0;
     let userAnswers = [];
+    let shuffledOptionsPerQuestion = [];
 
     function updateScoreDisplay() {
       document.getElementById("score-display").textContent = `Pontuação: ${score}/${roundQuestions.length}`;
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    // Embaralha as opções e retorna {options, correct}
+    function shuffleOptions(question) {
+      const options = question.options.map((opt, idx) => ({
+        text: opt,
+        isCorrect: idx === question.correct
+      }));
+      shuffle(options);
+      return {
+        options: options.map(opt => opt.text),
+        correct: options.findIndex(opt => opt.isCorrect)
+      };
     }
 
     function startGame() {
@@ -166,7 +188,6 @@
         <div class="navigation-buttons">
           <button id="prev-btn" class="nav-btn">← Anterior</button>
           <button id="next-btn" class="nav-btn">Próximo →</button>
-          <!-- O botão Finalizar será inserido via JS -->
         </div>
       `;
 
@@ -177,22 +198,26 @@
       currentQuestionIndex = 0;
       score = 0;
       userAnswers = new Array(roundQuestions.length).fill(null);
-      
+
+      // Embaralha as opções de cada questão uma única vez por rodada
+      shuffledOptionsPerQuestion = roundQuestions.map(q => shuffleOptions(q));
+
       updateScoreDisplay();
       loadQuestion();
     }
 
     function loadQuestion() {
       const questionObj = roundQuestions[currentQuestionIndex];
+      const shuffled = shuffledOptionsPerQuestion[currentQuestionIndex];
+
       document.getElementById("question").textContent = `Q${currentQuestionIndex + 1}: ${questionObj.q}`;
-      
       document.getElementById("prev-btn").disabled = currentQuestionIndex === 0;
       document.getElementById("next-btn").style.display = (currentQuestionIndex === roundQuestions.length - 1) ? "none" : "inline-block";
 
       const answersDiv = document.getElementById("answers");
       answersDiv.innerHTML = "";
-      
-      questionObj.options.forEach((option, index) => {
+
+      shuffled.options.forEach((option, index) => {
         const btn = document.createElement("button");
         btn.textContent = option;
         btn.disabled = userAnswers[currentQuestionIndex] !== null;
@@ -218,30 +243,32 @@
       }
 
       if (userAnswers[currentQuestionIndex] !== null) {
-        showQuestionFeedback(questionObj);
+        showQuestionFeedback();
       } else {
         document.getElementById("feedback").textContent = "";
       }
     }
 
     function checkAnswer(selected) {
-      const questionObj = roundQuestions[currentQuestionIndex];
+      const shuffled = shuffledOptionsPerQuestion[currentQuestionIndex];
       // Só conta ponto se ainda não respondeu
-      if (userAnswers[currentQuestionIndex] === null && selected === questionObj.correct) {
+      if (userAnswers[currentQuestionIndex] === null && selected === shuffled.correct) {
         score++;
         updateScoreDisplay();
       }
       userAnswers[currentQuestionIndex] = selected;
 
       document.querySelectorAll(".answers button").forEach(btn => btn.disabled = true);
-      showQuestionFeedback(questionObj);
+      showQuestionFeedback();
     }
 
-    function showQuestionFeedback(questionObj) {
+    function showQuestionFeedback() {
+      const questionObj = roundQuestions[currentQuestionIndex];
+      const shuffled = shuffledOptionsPerQuestion[currentQuestionIndex];
       const feedbackDiv = document.getElementById("feedback");
       const selected = userAnswers[currentQuestionIndex];
-      
-      if (selected === questionObj.correct) {
+
+      if (selected === shuffled.correct) {
         feedbackDiv.innerHTML = "✅ Resposta Correta!";
         feedbackDiv.style.color = "#27ae60";
       } else {
@@ -268,7 +295,7 @@
     function showResult() {
       const container = document.getElementById("game-container");
       const percentage = Math.round((score / roundQuestions.length) * 100);
-      
+
       container.innerHTML = `
         <h2>🏆 Resultado Final</h2>
         <div class="progress-bar">
@@ -278,7 +305,7 @@
         <p class="encouragement">${getEncouragement(percentage)}</p>
         <button id="restart-btn" class="nav-btn">Jogar Novamente</button>
       `;
-      
+
       document.getElementById("restart-btn").addEventListener("click", startGame);
     }
 
@@ -288,14 +315,6 @@
       if (percentage >= 75) return "✅ Muito bom! Você está no caminho certo!";
       if (percentage >= 50) return "📚 Bom esforço! Revise mais um pouco e você vai melhorar!";
       return "💪 Não desista! Cada erro é uma chance de aprender!";
-    }
-
-    function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
     }
 
     window.addEventListener('DOMContentLoaded', startGame);
