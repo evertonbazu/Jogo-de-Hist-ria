@@ -14,6 +14,13 @@
       text-align: center;
       color: #2c3e50;
     }
+    #score-display {
+      text-align: center;
+      margin: 10px 0;
+      font-weight: bold;
+      color: #27ae60;
+      font-size: 1.2em;
+    }
     .question-container {
       max-width: 700px;
       margin: 20px auto;
@@ -24,720 +31,265 @@
     }
     .question {
       font-weight: bold;
-      margin-bottom: 10px;
+      margin-bottom: 15px;
+      font-size: 1.1em;
+      color: #2c3e50;
     }
     .answers button {
       display: block;
       width: 100%;
       margin-bottom: 10px;
-      padding: 10px;
-      border: none;
-      border-radius: 5px;
-      background: #3498db;
-      color: white;
+      padding: 12px;
+      border: 2px solid #3498db;
+      border-radius: 8px;
+      background: #f8f9fa;
+      color: #2c3e50;
       cursor: pointer;
-      transition: background 0.3s;
+      transition: all 0.3s;
+      font-size: 1em;
     }
     .answers button:hover {
-      background: #2980b9;
+      background: #3498db;
+      color: white;
+    }
+    .answers button:disabled {
+      background: #ecf0f1;
+      color: #bdc3c7;
+      border-color: #bdc3c7;
+      cursor: not-allowed;
     }
     .feedback {
-      margin-top: 10px;
+      margin: 15px 0;
+      padding: 10px;
+      border-radius: 5px;
       font-style: italic;
+      font-size: 0.9em;
     }
-    #next-btn, #restart-btn {
-      display: block;
-      margin: 20px auto 0;
-      padding: 10px 20px;
-      background: #2ecc71;
-      color: white;
+    .navigation-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .nav-btn {
+      padding: 10px 25px;
       border: none;
       border-radius: 5px;
       cursor: pointer;
+      font-weight: bold;
+      transition: opacity 0.3s;
     }
-    #next-btn:hover, #restart-btn:hover {
-      background: #27ae60;
+    #prev-btn {
+      background: #e67e22;
+      color: white;
+    }
+    #next-btn {
+      background: #2ecc71;
+      color: white;
+    }
+    #restart-btn {
+      background: #3498db;
+      color: white;
+      margin: 20px auto;
+      display: block;
+    }
+    #finalizar-btn {
+      background: #8e44ad;
+      color: white;
+    }
+    .nav-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .progress-bar {
+      width: 80%;
+      height: 20px;
+      background: #ecf0f1;
+      border-radius: 10px;
+      margin: 20px auto;
+      overflow: hidden;
+    }
+    .progress {
+      height: 100%;
+      background: #2ecc71;
+      transition: width 0.5s ease;
+    }
+    .result-text {
+      font-size: 1.2em;
+      color: #2c3e50;
+      margin: 15px 0;
+      text-align: center;
+    }
+    .encouragement {
+      font-size: 1.1em;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      margin: 20px 0;
+      text-align: center;
     }
   </style>
 </head>
 <body>
   <h1>Jogo Histórico dos Prof. Everton e Edilaine</h1>
+  <div id="score-display">Pontuação: 0/10</div>
   <div class="question-container" id="game-container">
     <div class="question" id="question"></div>
     <div class="answers" id="answers"></div>
     <div class="feedback" id="feedback"></div>
-    <button id="next-btn" onclick="nextQuestion()" style="display:none;">Próxima questão</button>
+    <div class="navigation-buttons">
+      <button id="prev-btn" class="nav-btn" disabled>← Anterior</button>
+      <button id="next-btn" class="nav-btn">Próximo →</button>
+      <!-- O botão Finalizar será inserido via JS -->
+    </div>
   </div>
 
-  <script>
-    // Array com as 60 questões
-    const questions = [
-      // Capítulo 1 – 30 questões
-      {
-        q: "O que é a História como ciência?",
-        options: [
-          "É a arte de contar histórias fictícias.",
-          "É a investigação das ações humanas ao longo do tempo.",
-          "É o estudo dos mitos e lendas das civilizações antigas.",
-          "É uma ciência exata sobre o tempo e o espaço."
-        ],
-        correct: 1,
-        feedback: "A História investiga ações humanas ao longo do tempo, não é ficção."
-      },
-      {
-        q: "Qual dessas situações mostra a presença da História no dia a dia?",
-        options: [
-          "Comprar roupas da moda.",
-          "Comer um alimento típico de festa junina.",
-          "Dormir até mais tarde.",
-          "Jogar videogame com os amigos."
-        ],
-        correct: 1,
-        feedback: "Festas e tradições têm origem histórica."
-      },
-      {
-        q: "Qual é o papel da ampulheta como símbolo da História?",
-        options: [
-          "Representa o tempo das antigas civilizações.",
-          "Mostra que a História só existe no passado.",
-          "Foi usada para medir o tempo e representa a passagem do tempo.",
-          "Simboliza a memória e a tecnologia do futuro."
-        ],
-        correct: 2,
-        feedback: "A ampulheta simboliza o tempo que passa e a importância da História."
-      },
-      {
-        q: "Por que, antigamente, poucos eram considerados sujeitos históricos?",
-        options: [
-          "Porque só existiam reis e imperadores.",
-          "Porque apenas líderes e governantes eram registrados.",
-          "Porque ninguém mais fazia ações importantes.",
-          "Porque não havia população suficiente."
-        ],
-        correct: 1,
-        feedback: "No passado, só se registravam as ações dos governantes."
-      },
-      {
-        q: "Qual das opções representa uma fonte histórica?",
-        options: [
-          "Um brinquedo antigo guardado por gerações.",
-          "Uma opinião na internet.",
-          "Um filme de ficção científica.",
-          "Uma piada contada na escola."
-        ],
-        correct: 0,
-        feedback: "Fontes históricas são vestígios do passado."
-      },
-      {
-        q: "Hoje, quem pode ser considerado sujeito histórico?",
-        options: [
-          "Apenas pessoas que trabalham no governo.",
-          "Somente adultos que fazem leis.",
-          "Qualquer pessoa que, com suas ações, transforma a realidade.",
-          "Alunos que tiram boas notas na escola."
-        ],
-        correct: 2,
-        feedback: "Hoje, todos que agem podem ser sujeitos históricos."
-      },
-      {
-        q: "O que mudou na forma de contar a História ao longo do tempo?",
-        options: [
-          "A inclusão de datas mais recentes.",
-          "A substituição dos livros pelos vídeos.",
-          "A valorização de diferentes grupos sociais.",
-          "O fim do uso de documentos oficiais."
-        ],
-        correct: 2,
-        feedback: "A História passou a incluir diferentes perspectivas."
-      },
-      {
-        q: "Por que é importante estudar a História?",
-        options: [
-          "Para saber as datas de todos os acontecimentos.",
-          "Para memorizar nomes de imperadores e presidentes.",
-          "Para entender como o passado influencia o presente e o futuro.",
-          "Para aprender somente sobre guerras e revoluções."
-        ],
-        correct: 2,
-        feedback: "Estudar História ajuda a compreender nosso mundo."
-      },
-      {
-        q: "Qual ação de Roberto, dono de loja de brinquedos, mostra que ele é um sujeito histórico?",
-        options: [
-          "Comprar novos brinquedos para a loja.",
-          "Fazer promoções no Natal.",
-          "Doar brinquedos a crianças carentes.",
-          "Brincar com seus próprios filhos."
-        ],
-        correct: 2,
-        feedback: "Ação solidária influencia a comunidade."
-      },
-      {
-        q: "Por que as crianças são consideradas sujeitos históricos?",
-        options: [
-          "Porque sempre foram tratadas como adultos.",
-          "Porque aprendem sobre História na escola.",
-          "Porque suas ações também influenciam a sociedade.",
-          "Porque gostam de brincar e aprender."
-        ],
-        correct: 2,
-        feedback: "Crianças participam e transformam a sociedade."
-      },
-      {
-        q: "Qual documento ajudou a contar a história de Hana Brady?",
-        options: [
-          "Um jornal da época.",
-          "Um livro de História.",
-          "Uma mala com objetos pessoais.",
-          "Uma carta do governo."
-        ],
-        correct: 2,
-        feedback: "A mala de Hana é um registro histórico pessoal."
-      },
-      {
-        q: "Como as crianças eram vistas no passado?",
-        options: [
-          "Como seres com direitos garantidos.",
-          "Como pessoas incapazes de aprender.",
-          "Como adultos em miniatura, com responsabilidades.",
-          "Como líderes da família."
-        ],
-        correct: 2,
-        feedback: "No passado, crianças eram tratadas como adultos em miniatura."
-      },
-      {
-        q: "O que provocou a mudança na visão sobre a infância?",
-        options: [
-          "A criação de programas de TV.",
-          "A construção de escolas públicas.",
-          "O surgimento de leis e de um ensino pensado para elas.",
-          "O aumento da população infantil."
-        ],
-        correct: 2,
-        feedback: "A criação de leis e a educação reformaram a visão sobre a infância."
-      },
-      {
-        q: "Qual desses registros pode ser considerado documento histórico?",
-        options: [
-          "Um brinquedo moderno.",
-          "Um desenho feito por uma criança durante a guerra.",
-          "Um brinquedo novo comprado na loja.",
-          "Um comercial de TV atual."
-        ],
-        correct: 1,
-        feedback: "Registros artísticos contam a história."
-      },
-      {
-        q: "Qual conquista foi muito importante na luta das mulheres?",
-        options: [
-          "A construção de escolas femininas.",
-          "O direito de trabalhar fora de casa.",
-          "O direito ao voto.",
-          "A liberdade de usar roupas coloridas."
-        ],
-        correct: 2,
-        feedback: "O direito ao voto foi fundamental para a emancipação feminina."
-      },
-      {
-        q: "O que mostra a imagem de mulheres inglesas em 1908?",
-        options: [
-          "Um desfile da alta sociedade.",
-          "Uma reunião política de homens.",
-          "Um grupo exigindo direitos iguais.",
-          "Uma homenagem às rainhas do passado."
-        ],
-        correct: 2,
-        feedback: "As mulheres se organizaram para conquistar direitos iguais."
-      },
-      {
-        q: "Quem foi Celina Guimarães Viana?",
-        options: [
-          "A primeira presidente do Brasil.",
-          "Uma mulher que ensinava História na escola.",
-          "A primeira mulher registrada a votar no Brasil.",
-          "A líder de um movimento estudantil."
-        ],
-        correct: 2,
-        feedback: "Celina foi pioneira no voto feminino no Brasil."
-      },
-      {
-        q: "Por que as mulheres precisaram lutar por seus direitos?",
-        options: [
-          "Porque não queriam trabalhar.",
-          "Porque tinham poucos deveres.",
-          "Porque não eram reconhecidas como cidadãs.",
-          "Porque não gostavam da política."
-        ],
-        correct: 2,
-        feedback: "A luta foi necessária para o reconhecimento da cidadania feminina."
-      },
-      {
-        q: "O que mostra que estudantes também fazem parte da História?",
-        options: [
-          "A criação de festas escolares.",
-          "A participação em manifestações importantes.",
-          "A boa participação nas aulas.",
-          "O uso de uniforme escolar."
-        ],
-        correct: 1,
-        feedback: "Estudantes também deixam sua marca na história com mobilizações."
-      },
-      {
-        q: "Qual movimento estudantil contribuiu para o impeachment de Fernando Collor?",
-        options: [
-          "Movimento pela Cidadania.",
-          "Caras Pintadas.",
-          "Revolta dos Estudantes.",
-          "Protesto das Escolas Livres."
-        ],
-        correct: 1,
-        feedback: "O movimento dos Caras Pintadas foi crucial contra Collor."
-      },
-      {
-        q: "O que é cidadania?",
-        options: [
-          "O conjunto de regras para morar em outro país.",
-          "A união de leis que só os políticos conhecem.",
-          "A prática de direitos e deveres por quem vive em sociedade.",
-          "A liberdade de escolher o que quiser."
-        ],
-        correct: 2,
-        feedback: "Cidadania significa exercer direitos e cumprir deveres em sociedade."
-      },
-      {
-        q: "Qual é um exemplo de dever do cidadão?",
-        options: [
-          "Ter acesso à saúde pública.",
-          "Ir à escola.",
-          "Cumprir as leis e respeitar o próximo.",
-          "Assistir às propagandas políticas."
-        ],
-        correct: 2,
-        feedback: "Cumprir as leis e respeitar o próximo é um dever cidadão."
-      },
-      {
-        q: "O que é democracia representativa?",
-        options: [
-          "O sistema onde todos votam e tomam decisões juntos.",
-          "Quando apenas o presidente decide tudo.",
-          "Quando os cidadãos escolhem representantes para tomar decisões.",
-          "Quando os governadores são escolhidos pelo exército."
-        ],
-        correct: 2,
-        feedback: "Democracia representativa baseia-se na escolha de representantes."
-      },
-      {
-        q: "Quem é obrigado a votar nas eleições no Brasil?",
-        options: [
-          "Crianças e adolescentes.",
-          "Pessoas entre 18 e 70 anos.",
-          "Jovens de 16 anos.",
-          "Maiores de 70 anos."
-        ],
-        correct: 1,
-        feedback: "No Brasil, a votação é obrigatória para pessoas de 18 a 70 anos."
-      },
-      {
-        q: "Qual é a importância da memória na História?",
-        options: [
-          "Permite que a gente se esqueça do passado.",
-          "Ajuda a decorar datas e nomes.",
-          "Garante que fatos importantes sejam lembrados e estudados.",
-          "É usada só em museus e bibliotecas."
-        ],
-        correct: 2,
-        feedback: "A memória é crucial para preservar e estudar a História."
-      },
-      {
-        q: "O que representa a mala de Hana Brady?",
-        options: [
-          "Um brinquedo antigo.",
-          "Uma lembrança pessoal sem valor histórico.",
-          "Um documento que permitiu conhecer a história de uma criança na guerra.",
-          "Um presente que foi perdido no tempo."
-        ],
-        correct: 2,
-        feedback: "A mala de Hana é um registro importante da história vivida na guerra."
-      },
-      {
-        q: "Por que a cidadania é considerada uma conquista histórica?",
-        options: [
-          "Porque surgiu com os impérios antigos.",
-          "Porque sempre foi garantida por leis.",
-          "Porque foi fruto de lutas sociais ao longo do tempo.",
-          "Porque só os adultos a possuem."
-        ],
-        correct: 2,
-        feedback: "A cidadania é resultado de lutas históricas coletivas."
-      },
-      {
-        q: "O que mostra que nem todos os direitos são respeitados?",
-        options: [
-          "Todos os espaços públicos têm acessibilidade.",
-          "Existem leis que garantem tudo igualmente.",
-          "Crianças ainda enfrentam dificuldades, como Isabel na biblioteca.",
-          "As pessoas não gostam de seguir regras."
-        ],
-        correct: 2,
-        feedback: "Casos como o de Isabel indicam desafios na acessibilidade."
-      },
-      {
-        q: "Qual é o papel das crianças como sujeitos históricos?",
-        options: [
-          "Ajudar os adultos a lembrar do passado.",
-          "Repetir o que os mais velhos dizem.",
-          "Pensar, agir e transformar o lugar onde vivem.",
-          "Apenas estudar o conteúdo da escola."
-        ],
-        correct: 2,
-        feedback: "Crianças têm a capacidade de transformar sua realidade."
-      },
-      {
-        q: "Como a memória coletiva é construída?",
-        options: [
-          "Por meio de documentos oficiais.",
-          "Por meio das lembranças registradas por grupos e sociedades.",
-          "Pelos jornais do governo.",
-          "Somente por monumentos antigos."
-        ],
-        correct: 1,
-        feedback: "A memória coletiva se forma com relatos e registros da sociedade."
-      },
+  <!-- Arquivo externo com as questões -->
+  <script src="questions.js"></script>
 
-      // Capítulo 2 – 30 questões
-      {
-        q: "Qual é a principal função do historiador?",
-        options: [
-          "Prever o futuro.",
-          "Criar histórias de ficção.",
-          "Estudar o passado para entender o presente.",
-          "Ensinar matemática na escola."
-        ],
-        correct: 2,
-        feedback: "O historiador analisa vestígios do passado para entender o presente."
-      },
-      {
-        q: "Onde o historiador pode trabalhar?",
-        options: [
-          "Apenas em escolas.",
-          "Apenas em bibliotecas.",
-          "Em escolas, museus, arquivos e pesquisas.",
-          "Só em editoras de livros."
-        ],
-        correct: 2,
-        feedback: "O historiador atua em diversas áreas, como ensino, museus, arquivos e pesquisas."
-      },
-      {
-        q: "O que são fontes históricas?",
-        options: [
-          "Histórias contadas por professores.",
-          "Registros deixados pelos governos.",
-          "Vestígios do passado que ajudam o historiador.",
-          "Objetos antigos encontrados por acaso."
-        ],
-        correct: 2,
-        feedback: "Fontes históricas são vestígios que auxiliam na pesquisa do passado."
-      },
-      {
-        q: "Qual dessas opções é uma fonte histórica escrita?",
-        options: [
-          "Pintura.",
-          "Carta antiga.",
-          "Escultura.",
-          "Canção popular."
-        ],
-        correct: 1,
-        feedback: "Uma carta antiga é uma fonte histórica escrita."
-      },
-      {
-        q: "O que torna uma fonte importante para o historiador?",
-        options: [
-          "Ter muitos desenhos.",
-          "Estar colorida.",
-          "Ajudar a entender o passado.",
-          "Ser encontrada na internet."
-        ],
-        correct: 2,
-        feedback: "O valor de uma fonte está em sua relevância para interpretar o passado."
-      },
-      {
-        q: "Por que a História pode ser reescrita?",
-        options: [
-          "Porque os historiadores gostam de mudar tudo.",
-          "Porque surgem novas fontes e interpretações.",
-          "Porque os livros estão errados.",
-          "Porque as pessoas esquecem o passado."
-        ],
-        correct: 1,
-        feedback: "Novas fontes e interpretações podem alterar nossa compreensão histórica."
-      },
-      {
-        q: "Qual é o papel do museu na preservação da História?",
-        options: [
-          "Ensinar matemática.",
-          "Guardar objetos importantes do passado.",
-          "Vender lembrancinhas.",
-          "Proteger a natureza."
-        ],
-        correct: 1,
-        feedback: "Museus preservam objetos que são importantes vestígios históricos."
-      },
-      {
-        q: "Um relato contado por uma pessoa mais velha é uma fonte:",
-        options: [
-          "Visual.",
-          "Escrita.",
-          "Oral.",
-          "Científica."
-        ],
-        correct: 2,
-        feedback: "Relatos de pessoas são considerados fontes orais."
-      },
-      {
-        q: "Qual dessas opções pode ser considerada uma fonte visual?",
-        options: [
-          "Entrevista com um morador.",
-          "Foto antiga da cidade.",
-          "Carta manuscrita.",
-          "Poema popular."
-        ],
-        correct: 1,
-        feedback: "Fotos são fontes visuais importantes para o historiador."
-      },
-      {
-        q: "O que significa tombamento de um bem cultural?",
-        options: [
-          "Derrubar o bem.",
-          "Mudar sua localização.",
-          "Proteger e preservar o bem.",
-          "Guardá-lo em segredo."
-        ],
-        correct: 2,
-        feedback: "Tombamento é o processo legal de proteger um bem cultural."
-      },
-      {
-        q: "Quem é responsável pelos patrimônios culturais do Brasil?",
-        options: [
-          "UNESCO.",
-          "IBGE.",
-          "IPHAN.",
-          "INEP."
-        ],
-        correct: 2,
-        feedback: "O IPHAN é o órgão responsável pelos patrimônios culturais no Brasil."
-      },
-      {
-        q: "A UNESCO cuida de patrimônios:",
-        options: [
-          "Só do Brasil.",
-          "Da América do Sul.",
-          "Do mundo todo.",
-          "Apenas da Europa."
-        ],
-        correct: 2,
-        feedback: "A UNESCO protege patrimônios culturais em todo o mundo."
-      },
-      {
-        q: "Qual desses é um exemplo de patrimônio cultural material?",
-        options: [
-          "A literatura de cordel.",
-          "O frevo.",
-          "O Museu do Ipiranga.",
-          "Uma lenda indígena."
-        ],
-        correct: 2,
-        feedback: "O Museu do Ipiranga é um patrimônio material."
-      },
-      {
-        q: "Qual desses é um patrimônio imaterial?",
-        options: [
-          "Um castelo medieval.",
-          "A dança do frevo.",
-          "Um livro antigo.",
-          "Uma cidade histórica."
-        ],
-        correct: 1,
-        feedback: "O frevo é considerado patrimônio imaterial."
-      },
-      {
-        q: "O que são vestígios históricos?",
-        options: [
-          "Sobras de objetos sem valor.",
-          "Restos de comida do passado.",
-          "Marcas deixadas pelas ações humanas.",
-          "Palavras inventadas pelos historiadores."
-        ],
-        correct: 2,
-        feedback: "Vestígios históricos são marcas deixadas por ações humanas."
-      },
-      {
-        q: "Por que preservar o patrimônio é importante?",
-        options: [
-          "Para fazer propaganda.",
-          "Para deixar a cidade bonita.",
-          "Para manter viva a memória de um povo.",
-          "Para ganhar prêmios internacionais."
-        ],
-        correct: 2,
-        feedback: "Preservar o patrimônio garante a continuidade da memória cultural."
-      },
-      {
-        q: "Qual é a função de um inventário cultural?",
-        options: [
-          "Vender produtos antigos.",
-          "Registrar informações sobre patrimônios.",
-          "Contar histórias fictícias.",
-          "Apagar memórias antigas."
-        ],
-        correct: 1,
-        feedback: "Inventários registram informações importantes sobre bens culturais."
-      },
-      {
-        q: "A cidade-fortaleza de Fasil Ghebbi, na Etiópia, é exemplo de:",
-        options: [
-          "Fonte oral.",
-          "Patrimônio imaterial.",
-          "Patrimônio cultural da humanidade.",
-          "Invenção moderna."
-        ],
-        correct: 2,
-        feedback: "Fasil Ghebbi é um patrimônio cultural da humanidade."
-      },
-      {
-        q: "A fonte usada por Pedro no caso do “Casarão da Melodia” foi:",
-        options: [
-          "Escrita.",
-          "Visual.",
-          "Oral.",
-          "Arqueológica."
-        ],
-        correct: 2,
-        feedback: "A fonte utilizada foi oral, baseada em relatos de moradores."
-      },
-      {
-        q: "O frevo é praticado principalmente no:",
-        options: [
-          "Carnaval de Pernambuco.",
-          "Festival de Parintins.",
-          "Réveillon do Rio.",
-          "Bumba-meu-boi do Maranhão."
-        ],
-        correct: 0,
-        feedback: "O frevo é tradicionalmente praticado no Carnaval de Pernambuco."
-      },
-      {
-        q: "A literatura de cordel é patrimônio cultural do tipo:",
-        options: [
-          "Material.",
-          "Imaterial.",
-          "Visual.",
-          "Natural."
-        ],
-        correct: 1,
-        feedback: "A literatura de cordel é considerada patrimônio imaterial."
-      },
-      {
-        q: "O trabalho do historiador é marcado pela:",
-        options: [
-          "Cópia de fatos.",
-          "Descoberta e interpretação.",
-          "Criação de novas histórias.",
-          "Publicação de revistas."
-        ],
-        correct: 1,
-        feedback: "O historiador investiga, descobre e interpreta vestígios do passado."
-      },
-      {
-        q: "Os patrimônios culturais podem ser:",
-        options: [
-          "Apenas visuais.",
-          "Apenas artísticos.",
-          "Materiais ou imateriais.",
-          "Temporários ou digitais."
-        ],
-        correct: 2,
-        feedback: "Os patrimônios podem ser divididos em materiais e imateriais."
-      },
-      {
-        q: "Um sítio arqueológico é exemplo de:",
-        options: [
-          "Fonte oral.",
-          "Patrimônio cultural material.",
-          "Festa religiosa.",
-          "Livro escolar."
-        ],
-        correct: 1,
-        feedback: "Sítios arqueológicos são exemplos de patrimônios culturais materiais."
-      },
-      {
-        q: "Qual alternativa mostra algo que o historiador pode pesquisar?",
-        options: [
-          "O futuro da humanidade.",
-          "O gosto musical da turma.",
-          "A origem de uma comunidade pesqueira.",
-          "O horóscopo da semana."
-        ],
-        correct: 2,
-        feedback: "O historiador pode pesquisar a origem de comunidades locais."
-      },
-      {
-        q: "Para interpretar fontes, o historiador deve:",
-        options: [
-          "Apenas ler livros antigos.",
-          "Fazer cópias e guardá-las.",
-          "Analisar vestígios com atenção e cruzar informações.",
-          "Imitar os costumes antigos."
-        ],
-        correct: 2,
-        feedback: "A análise detalhada e o cruzamento de informações são essenciais."
-      },
-      {
-        q: "Quando algo é tombado, significa que:",
-        options: [
-          "Será destruído.",
-          "Deve ser preservado e protegido.",
-          "Vai ser esquecido.",
-          "Pode ser vendido."
-        ],
-        correct: 1,
-        feedback: "Tombamento garante a proteção legal do bem cultural."
-      },
-      {
-        q: "O Museu Britânico está localizado em:",
-        options: [
-          "Paris.",
-          "Roma.",
-          "Londres.",
-          "Lisboa."
-        ],
-        correct: 2,
-        feedback: "O Museu Britânico está localizado em Londres."
-      },
-      {
-        q: "O Museu do Ipiranga homenageia:",
-        options: [
-          "Abolição da Escravatura.",
-          "Revolução de 1930.",
-          "A Proclamação da Independência.",
-          "Ditadura Militar."
-        ],
-        correct: 2,
-        feedback: "O Museu do Ipiranga celebra a Proclamação da Independência."
-      },
-      {
-        q: "Preservar o patrimônio ajuda a:",
-        options: [
-          "Esquecer o passado.",
-          "Ganhar dinheiro com turismo.",
-          "Valorizar a identidade e a cultura dos povos.",
-          "Acabar com os museus."
-        ],
-        correct: 2,
-        feedback: "Preservar o patrimônio fortalece a identidade cultural."
+  <script>
+    let roundQuestions = [];
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let userAnswers = [];
+
+    function updateScoreDisplay() {
+      document.getElementById("score-display").textContent = `Pontuação: ${score}/${roundQuestions.length}`;
+    }
+
+    function startGame() {
+      const container = document.getElementById("game-container");
+      container.innerHTML = `
+        <div class="question" id="question"></div>
+        <div class="answers" id="answers"></div>
+        <div class="feedback" id="feedback"></div>
+        <div class="navigation-buttons">
+          <button id="prev-btn" class="nav-btn">← Anterior</button>
+          <button id="next-btn" class="nav-btn">Próximo →</button>
+          <!-- O botão Finalizar será inserido via JS -->
+        </div>
+      `;
+
+      document.getElementById("prev-btn").addEventListener("click", prevQuestion);
+      document.getElementById("next-btn").addEventListener("click", nextQuestion);
+
+      roundQuestions = shuffle([...questions]).slice(0, 10);
+      currentQuestionIndex = 0;
+      score = 0;
+      userAnswers = new Array(roundQuestions.length).fill(null);
+      
+      updateScoreDisplay();
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      const questionObj = roundQuestions[currentQuestionIndex];
+      document.getElementById("question").textContent = `Q${currentQuestionIndex + 1}: ${questionObj.q}`;
+      
+      document.getElementById("prev-btn").disabled = currentQuestionIndex === 0;
+      document.getElementById("next-btn").style.display = (currentQuestionIndex === roundQuestions.length - 1) ? "none" : "inline-block";
+
+      const answersDiv = document.getElementById("answers");
+      answersDiv.innerHTML = "";
+      
+      questionObj.options.forEach((option, index) => {
+        const btn = document.createElement("button");
+        btn.textContent = option;
+        btn.disabled = userAnswers[currentQuestionIndex] !== null;
+        btn.addEventListener("click", () => checkAnswer(index));
+        answersDiv.appendChild(btn);
+      });
+
+      // Adiciona o botão Finalizar apenas na última questão
+      const navDiv = document.querySelector(".navigation-buttons");
+      let finalizarBtn = document.getElementById("finalizar-btn");
+      if (currentQuestionIndex === roundQuestions.length - 1) {
+        if (!finalizarBtn) {
+          finalizarBtn = document.createElement("button");
+          finalizarBtn.id = "finalizar-btn";
+          finalizarBtn.className = "nav-btn";
+          finalizarBtn.textContent = "Finalizar";
+          finalizarBtn.onclick = showResult;
+          navDiv.appendChild(finalizarBtn);
+        }
+        finalizarBtn.style.display = "inline-block";
+      } else if (finalizarBtn) {
+        finalizarBtn.style.display = "none";
       }
-    ];
-    
-    // Função para embaralhar arrays
+
+      if (userAnswers[currentQuestionIndex] !== null) {
+        showQuestionFeedback(questionObj);
+      } else {
+        document.getElementById("feedback").textContent = "";
+      }
+    }
+
+    function checkAnswer(selected) {
+      const questionObj = roundQuestions[currentQuestionIndex];
+      // Só conta ponto se ainda não respondeu
+      if (userAnswers[currentQuestionIndex] === null && selected === questionObj.correct) {
+        score++;
+        updateScoreDisplay();
+      }
+      userAnswers[currentQuestionIndex] = selected;
+
+      document.querySelectorAll(".answers button").forEach(btn => btn.disabled = true);
+      showQuestionFeedback(questionObj);
+    }
+
+    function showQuestionFeedback(questionObj) {
+      const feedbackDiv = document.getElementById("feedback");
+      const selected = userAnswers[currentQuestionIndex];
+      
+      if (selected === questionObj.correct) {
+        feedbackDiv.innerHTML = "✅ Resposta Correta!";
+        feedbackDiv.style.color = "#27ae60";
+      } else {
+        feedbackDiv.innerHTML = `❌ ${questionObj.feedback}`;
+        feedbackDiv.style.color = "#e74c3c";
+      }
+    }
+
+    function prevQuestion() {
+      if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        loadQuestion();
+      }
+    }
+
+    function nextQuestion() {
+      if (currentQuestionIndex < roundQuestions.length - 1) {
+        currentQuestionIndex++;
+        loadQuestion();
+      }
+      // Não mostra resultado aqui, só no botão Finalizar
+    }
+
+    function showResult() {
+      const container = document.getElementById("game-container");
+      const percentage = Math.round((score / roundQuestions.length) * 100);
+      
+      container.innerHTML = `
+        <h2>🏆 Resultado Final</h2>
+        <div class="progress-bar">
+          <div class="progress" style="width: ${percentage}%"></div>
+        </div>
+        <p class="result-text">Você acertou ${score} de ${roundQuestions.length} questões</p>
+        <p class="encouragement">${getEncouragement(percentage)}</p>
+        <button id="restart-btn" class="nav-btn">Jogar Novamente</button>
+      `;
+      
+      document.getElementById("restart-btn").addEventListener("click", startGame);
+    }
+
+    function getEncouragement(percentage) {
+      if (percentage === 100) return "🎉 Perfeito! Domínio total! Você é um mestre da História!";
+      if (percentage >= 90) return "🌟 Excelente! Quase perfeito! Continue assim!";
+      if (percentage >= 75) return "✅ Muito bom! Você está no caminho certo!";
+      if (percentage >= 50) return "📚 Bom esforço! Revise mais um pouco e você vai melhorar!";
+      return "💪 Não desista! Cada erro é uma chance de aprender!";
+    }
+
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -745,89 +297,8 @@
       }
       return array;
     }
-    
-    let roundQuestions = [];
-    let currentQuestionIndex = 0;
-    let score = 0;
-    let questionsAnswered = 0;
-    
-    // Inicia o jogo selecionando 10 questões aleatórias dentre as 60
-    function startGame() {
-      let shuffled = shuffle([...questions]);
-      roundQuestions = shuffled.slice(0, 10);
-      currentQuestionIndex = 0;
-      score = 0;
-      questionsAnswered = 0;
-      document.getElementById("feedback").textContent = "";
-      document.getElementById("next-btn").style.display = "none";
-      document.getElementById("game-container").style.display = "block";
-      loadQuestion();
-    }
-    
-    function loadQuestion() {
-      if (currentQuestionIndex < roundQuestions.length) {
-        const questionObj = roundQuestions[currentQuestionIndex];
-        document.getElementById("question").textContent = "Q" + (questionsAnswered + 1) + ": " + questionObj.q;
-        const answersDiv = document.getElementById("answers");
-        answersDiv.innerHTML = "";
-        questionObj.options.forEach((option, index) => {
-          const btn = document.createElement("button");
-          btn.textContent = option;
-          btn.onclick = () => checkAnswer(index);
-          answersDiv.appendChild(btn);
-        });
-      }
-    }
-    
-    function checkAnswer(selected) {
-      const questionObj = roundQuestions[currentQuestionIndex];
-      const feedbackDiv = document.getElementById("feedback");
-      // Impede múltiplos cliques
-      const answerButtons = document.querySelectorAll(".answers button");
-      answerButtons.forEach(btn => btn.disabled = true);
-      
-      if (selected === questionObj.correct) {
-        score++;
-        feedbackDiv.textContent = "Parabéns! Você acertou!";
-        feedbackDiv.style.color = "green";
-      } else {
-        feedbackDiv.textContent = questionObj.feedback;
-        feedbackDiv.style.color = "red";
-      }
-      
-      questionsAnswered++;
-      document.getElementById("next-btn").style.display = "block";
-    }
-    
-    function nextQuestion() {
-      currentQuestionIndex++;
-      document.getElementById("feedback").textContent = "";
-      document.getElementById("next-btn").style.display = "none";
-      if (currentQuestionIndex < roundQuestions.length) {
-        loadQuestion();
-      } else {
-        showResult();
-      }
-    }
-    
-    function showResult() {
-      const container = document.getElementsByClassName("question-container")[0];
-      container.innerHTML = "<h2>Resultado</h2><p>Você acertou " + score + " de " + roundQuestions.length + " questões.</p>";
-      let encouragement = "";
-      if (score === 10) {
-        encouragement = "Excelente trabalho! Você é um verdadeiro expert em História!";
-      } else if (score >= 7) {
-        encouragement = "Muito bom! Continue estudando para aprimorar cada vez mais.";
-      } else if (score >= 4) {
-        encouragement = "Bom esforço, mas há espaço para melhorar. Continue se dedicando!";
-      } else {
-        encouragement = "Não desanime! Continue estudando e você irá melhorar.";
-      }
-      container.innerHTML += "<p>" + encouragement + "</p>";
-      container.innerHTML += "<button id='restart-btn' onclick='startGame()'>Jogar Novamente</button>";
-    }
-    
-    window.onload = startGame;
+
+    window.addEventListener('DOMContentLoaded', startGame);
   </script>
 </body>
 </html>
